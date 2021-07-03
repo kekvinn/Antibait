@@ -61,9 +61,9 @@ def compare(thumbnail, video):
             cv.imshow('difference', difference)
             b, g, r = cv.split(difference)
 
-            # if cv.countNonZero(b) < 526253 and cv.countNonZero(g) > 486241 and cv.countNonZero(r) > 381902:
-            #     print("equal")
-            #     break
+            if cv.countNonZero(b) == 0 and cv.countNonZero(g) == 0 and cv.countNonZero(r) == 0:
+                print("equal")
+                break
 
     video.release()
     cv.destroyAllWindows()
