@@ -49,8 +49,10 @@ def fetch_thumbnail(url):
 # Compares frames of video and the thumbnail
 def compare(thumbnail, video):
     highest = 0
-    while True:
+    frame_at_highest = 0
+    frame_count = int(video.get(cv.CAP_PROP_FRAME_COUNT))
 
+    for i in range(frame_count):
         is_true, frame = video.read()
         vid_size = frame.shape
         (height, width, useless) = vid_size
@@ -67,8 +69,10 @@ def compare(thumbnail, video):
 
         if percentage > highest:
             highest = percentage
-            print(highest)
+            frame_at_highest = i
 
+
+    print(str(frame_at_highest))
     video.release()
     cv.destroyAllWindows()
 
