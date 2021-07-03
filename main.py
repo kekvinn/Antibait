@@ -9,14 +9,14 @@ import pafy
 def process_url():
     link = input('Please enter the YouTube Link: ')
 
-    # Stores the thumbnail of the video
-    image_url = 'https://img.youtube.com/vi/' + extract_video_id(link) + '/maxresdefault.jpg'
-    thumbnail = cv.resize(fetch_thumbnail(image_url), (1280, 720))
-
     # Stores the YouTube video
     v_pafy = pafy.new(link)
     play = v_pafy.getbest(preftype="mp4")
     capture = cv.VideoCapture(play.url)
+
+    # Stores the thumbnail of the video
+    image_url = 'https://img.youtube.com/vi/' + extract_video_id(link) + '/maxresdefault.jpg'
+    thumbnail = fetch_thumbnail(image_url)
 
     compare(thumbnail, capture)
 
@@ -48,27 +48,29 @@ def fetch_thumbnail(url):
 
 # Compares frames of video and the thumbnail
 def compare(thumbnail, video):
+    highest = 0
     while True:
+
         is_true, frame = video.read()
-        cv.imshow('Video', frame)
-        cv.imshow('Image', thumbnail)
+        vid_size = frame.shape
+        (height, width, useless) = vid_size
+
+        thumbnail = cv.resize(thumbnail, (width, height))
 
         if cv.waitKey(1) & 0xFF == ord('d'):
             break
 
         if thumbnail.shape == frame.shape:
-            difference = cv.subtract(thumbnail, frame)
-            cv.imshow('difference', difference)
-            b, g, r = cv.split(difference)
+            res = cv.absdiff(thumbnail, frame)
+            res = res.astype(np.uint8)
+            percentage = 100 - (np.count_nonzero(res) * 100) / res.size
 
-            if cv.countNonZero(b) == 0 and cv.countNonZero(g) == 0 and cv.countNonZero(r) == 0:
-                print("equal")
-                break
+        if percentage > highest:
+            highest = percentage
+            print(highest)
 
     video.release()
     cv.destroyAllWindows()
 
 
 process_url()
-
-
