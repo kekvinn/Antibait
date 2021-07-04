@@ -3,6 +3,7 @@ import urllib.request
 import numpy as np
 from urllib.parse import urlparse, parse_qs
 import pafy
+from datetime import timedelta
 
 
 # Processes YouTube URL
@@ -23,18 +24,20 @@ def process_url():
 
 # Gets the video ID of the video
 def extract_video_id(url):
+    if url.startswith(('youtu', 'www')):
+        url = 'http://' + url
+
     query = urlparse(url)
-    if query.hostname == 'youtu.be':
-        return query.path[1:]
-    if query.hostname in {'www.youtube.com', 'youtube.com'}:
+
+    if 'youtube' in query.hostname:
         if query.path == '/watch':
             return parse_qs(query.query)['v'][0]
-        if query.path[:7] == '/watch/':
-            return query.path.split('/')[1]
-        if query.path[:7] == '/embed/':
+        elif query.path.startswith(('/embed/', '/v/')):
             return query.path.split('/')[2]
-        if query.path[:3] == '/v/':
-            return query.path.split('/')[2]
+    elif 'youtu.be' in query.hostname:
+        return query.path[1:]
+    else:
+        raise ValueError
 
 
 # Acquires the thumbnail from the video
@@ -71,10 +74,15 @@ def compare(thumbnail, video):
             highest = percentage
             frame_at_highest = i
 
-
-    print(str(frame_at_highest))
+    convert_to_time(frame_at_highest)
     video.release()
     cv.destroyAllWindows()
+
+
+def convert_to_time(frame_count):
+    fps = 30.0
+    td = timedelta(seconds=(frame_count / fps))
+    print(td)
 
 
 process_url()
