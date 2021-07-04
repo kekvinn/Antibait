@@ -3,6 +3,7 @@ import urllib.request
 import numpy as np
 from urllib.parse import urlparse, parse_qs
 import pafy
+# from numba import njit
 
 
 # Processes YouTube URL
@@ -51,6 +52,7 @@ def compare(thumbnail, video):
     highest = 0
     frame_at_highest = 0
     frame_count = int(video.get(cv.CAP_PROP_FRAME_COUNT))
+    count = 1
 
     for i in range(frame_count):
         is_true, frame = video.read()
@@ -59,14 +61,17 @@ def compare(thumbnail, video):
 
         thumbnail = cv.resize(thumbnail, (width, height))
 
-        if thumbnail.shape == frame.shape:
-            res = cv.absdiff(thumbnail, frame)
-            res = res.astype(np.uint8)
-            percentage = 100 - (np.count_nonzero(res) * 100) / res.size
+        if count % 30 == 0:
+            if thumbnail.shape == frame.shape:
+                res = cv.absdiff(thumbnail, frame)
+                res = res.astype(np.uint8)
+                percentage = 100 - (np.count_nonzero(res) * 100) / res.size
 
-        if percentage > highest:
-            highest = percentage
-            frame_at_highest = i
+            if percentage > highest:
+                highest = percentage
+                frame_at_highest = i
+
+        count += 1
 
     convert_to_time(frame_at_highest)
     video.release()
