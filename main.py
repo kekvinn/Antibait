@@ -3,13 +3,10 @@ import urllib.request
 import numpy as np
 from urllib.parse import urlparse, parse_qs
 import pafy
-from datetime import timedelta
 
 
 # Processes YouTube URL
 def process_url():
-    link = input('Please enter the YouTube Link: ')
-
     # Stores the YouTube video
     v_pafy = pafy.new(link)
     play = v_pafy.getbest(preftype="mp4")
@@ -62,9 +59,6 @@ def compare(thumbnail, video):
 
         thumbnail = cv.resize(thumbnail, (width, height))
 
-        if cv.waitKey(1) & 0xFF == ord('d'):
-            break
-
         if thumbnail.shape == frame.shape:
             res = cv.absdiff(thumbnail, frame)
             res = res.astype(np.uint8)
@@ -79,10 +73,42 @@ def compare(thumbnail, video):
     cv.destroyAllWindows()
 
 
+# Converts a frame into a timestamp
 def convert_to_time(frame_count):
     fps = 30.0
-    td = timedelta(seconds=(frame_count / fps))
-    print(td)
+    seconds = round(frame_count / fps)
+    minutes = 0
+    hours = 0
+
+    while seconds > 60:
+        seconds -= 60
+        minutes = minutes + 1
+
+    while minutes > 60:
+        minutes -= 60
+        hours = hours + 1
+
+    if seconds < 10:
+        seconds = '0' + str(seconds)
+
+    if hours > 0:
+        if minutes < 10:
+            minutes = '0' + str(minutes)
+        timestamp = str(hours) + ':' + str(minutes) + ':' + str(seconds)
+    else:
+        timestamp = str(minutes) + ':' + str(seconds)
+
+    print(timestamp)
+    make_new_link(seconds)
 
 
-process_url()
+# Creates a new link that leads to where the thumbnail appears in the video
+def make_new_link(seconds):
+    new_link = 'https://youtu.be/' + extract_video_id(link) + '?t=' + str(seconds)
+    print('Link: ' + new_link)
+
+
+if __name__ == '__main__':
+    link = input('Please enter the YouTube Link: ')
+    process_url()
+
